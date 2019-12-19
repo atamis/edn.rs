@@ -530,3 +530,41 @@ fn test_comments() {
     assert_eq!(parser.read(), Some(Ok(Value::Map(BTreeMap::new()))));
     assert_eq!(parser.read(), None);
 }
+
+#[test]
+fn test_quotes() {
+    let mut parser = Parser::new("'true '() '(1 2 3) '");
+
+    assert_eq!(
+        parser.read(),
+        Some(Ok(Value::List(vec![
+            Value::Symbol("quote".into()),
+            Value::Boolean(true)
+        ])))
+    );
+
+    assert_eq!(
+        parser.read(),
+        Some(Ok(Value::List(vec![
+            Value::Symbol("quote".into()),
+            Value::List(vec![])
+        ])))
+    );
+
+    assert_eq!(
+        parser.read(),
+        Some(Ok(Value::List(vec![
+            Value::Symbol("quote".into()),
+            Value::List(vec![1.into(), 2.into(), 3.into()])
+        ])))
+    );
+
+    assert_eq!(
+        parser.read(),
+        Some(Err(Error {
+            lo: 19,
+            hi: 20,
+            message: "no quoted value".into(),
+        }))
+    );
+}

@@ -257,6 +257,21 @@ impl<'a> Parser<'a> {
                 self.chars.next();
                 Ok(Value::Symbol("/".into()))
             }
+            (start, '\'') => {
+                self.chars.next();
+                self.whitespace();
+                let value = self.read();
+
+                match value {
+                    Some(Ok(v)) => Ok(Value::List(vec![Value::Symbol("quote".into()), v])),
+                    Some(e) => e,
+                    None => Err(Error {
+                        lo: start,
+                        hi: self.str.len(),
+                        message: "no quoted value".into(),
+                    }),
+                }
+            }
             _ => unimplemented!(),
         })
     }
@@ -318,8 +333,9 @@ fn is_symbol_head(ch: char) -> bool {
 }
 
 fn is_symbol_tail(ch: char) -> bool {
-    is_symbol_head(ch) || match ch {
-        '0'...'9' | ':' | '#' | '/' => true,
-        _ => false,
-    }
+    is_symbol_head(ch)
+        || match ch {
+            '0'...'9' | ':' | '#' | '/' => true,
+            _ => false,
+        }
 }
