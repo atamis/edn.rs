@@ -20,7 +20,7 @@ pub struct Error {
 impl<'a> Parser<'a> {
     pub fn new(str: &'a str) -> Parser<'a> {
         Parser {
-            str: str,
+            str,
             chars: str.char_indices(),
         }
     }
@@ -29,7 +29,7 @@ impl<'a> Parser<'a> {
         self.whitespace();
 
         self.chars.clone().next().map(|(pos, ch)| match (pos, ch) {
-            (start, '0'...'9') => {
+            (start, '0'..='9') => {
                 let end = self.advance_while(|ch| ch.is_digit(10));
                 if self.peek() == Some('.') {
                     self.chars.next();
@@ -53,7 +53,7 @@ impl<'a> Parser<'a> {
                 self.chars.next();
                 let c = self.peek();
                 match c {
-                    Some('0'...'9') => {
+                    Some('0'..='9') => {
                         let start = if ch == '+' { start + 1 } else { start };
                         let end = self.advance_while(|ch| ch.is_digit(10));
                         if self.peek() == Some('.') {
@@ -79,7 +79,7 @@ impl<'a> Parser<'a> {
             }
             (start, '.') => {
                 self.chars.next();
-                if let Some('0'...'9') = self.peek() {
+                if let Some('0'..='9') = self.peek() {
                     let end = self.advance_while(|ch| ch.is_digit(10));
                     Ok(Value::Float(OrderedFloat(
                         self.str[start..end].parse().unwrap(),
@@ -179,7 +179,7 @@ impl<'a> Parser<'a> {
                                             .clone()
                                             .next()
                                             .map(|(pos, _)| pos)
-                                            .unwrap_or(self.str.len());
+                                            .unwrap_or_else(|| self.str.len());
                                         return Err(Error {
                                             lo: start,
                                             hi: end,
@@ -241,10 +241,10 @@ impl<'a> Parser<'a> {
                         let value = self.read();
 
                         match value {
-                            Some(Ok(v)) => return Ok(Value::Tagged(tag.into(), Box::new(v))),
-                            Some(e) => return e,
+                            Some(Ok(v)) => Ok(Value::Tagged(tag.into(), Box::new(v))),
+                            Some(e) => e,
                             None => {
-                                return Err(Error {
+                                Err(Error {
                                     lo: start,
                                     hi: self.str.len(),
                                     message: "malformed tagged value".into(),
@@ -339,8 +339,8 @@ impl<'a> Parser<'a> {
 
 fn is_symbol_head(ch: char) -> bool {
     match ch {
-        'a'...'z'
-        | 'A'...'Z'
+        'a'..='z'
+        | 'A'..='Z'
         | '.'
         | '*'
         | '+'
@@ -361,7 +361,7 @@ fn is_symbol_head(ch: char) -> bool {
 fn is_symbol_tail(ch: char) -> bool {
     is_symbol_head(ch)
         || match ch {
-            '0'...'9' | ':' | '#' | '/' => true,
+            '0'..='9' | ':' | '#' | '/' => true,
             _ => false,
         }
 }
