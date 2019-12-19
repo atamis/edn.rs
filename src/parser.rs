@@ -38,7 +38,15 @@ impl<'a> Parser<'a> {
                         self.str[start..end].parse().unwrap(),
                     )))
                 } else {
-                    Ok(Value::Integer(self.str[start..end].parse().unwrap()))
+                    let r = self.str[start..end].parse();
+                    match r {
+                        Ok(i) => Ok(Value::Integer(i)),
+                        Err(e) => Err(Error {
+                            lo: start,
+                            hi: end,
+                            message: format!("Parsing integer failed: {:?}", e)
+                        })
+                    }
                 }
             }
             (start, ch @ '+') | (start, ch @ '-') => {
