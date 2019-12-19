@@ -291,7 +291,14 @@ impl<'a> Parser<'a> {
                     }),
                 }
             }
-            _ => unimplemented!(),
+            (start, ')') | (start, ']') | (start, '}') => {
+                Err(Error {
+                    lo: start,
+                    hi: start + 1,
+                    message: "Unmatched terminator".into(),
+                })
+            }
+            x => panic!(format!("Parser error not implemented: {:?}", x)),
         })
     }
 
