@@ -261,7 +261,7 @@ impl<'a> Parser<'a> {
                 self.chars.next();
                 Ok(Value::Symbol("/".into()))
             }
-            (start, '\'') | (start, '`') => {
+            (start, '\'') | (start, '`') | (start, '~') => {
                 let (_, quote) = self.chars.next().unwrap();
                 self.whitespace();
                 let value = self.read();
@@ -269,6 +269,7 @@ impl<'a> Parser<'a> {
                 let name = match quote {
                     '\'' => "quote",
                     '`' => "quasiquote",
+                    '~' => "unquote",
                     _ => unreachable!(),
                 };
 
