@@ -261,18 +261,24 @@ impl<'a> Parser<'a> {
                 self.chars.next();
                 Ok(Value::Symbol("/".into()))
             }
-            (start, '\'') => {
-                self.chars.next();
+            (start, '\'') | (start, '`') => {
+                let (_, quote) = self.chars.next().unwrap();
                 self.whitespace();
                 let value = self.read();
 
+                let name = match quote {
+                    '\'' => "quote",
+                    '`' => "quasiquote",
+                    _ => unreachable!(),
+                };
+
                 match value {
-                    Some(Ok(v)) => Ok(Value::List(vec![Value::Symbol("quote".into()), v])),
+                    Some(Ok(v)) => Ok(Value::List(vec![Value::Symbol(name.into()), v])),
                     Some(e) => e,
                     None => Err(Error {
                         lo: start,
                         hi: self.str.len(),
-                        message: "no quoted value".into(),
+                        message: format!("no {} value", name),
                     }),
                 }
             }

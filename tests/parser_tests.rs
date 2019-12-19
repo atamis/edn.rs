@@ -564,7 +564,43 @@ fn test_quotes() {
         Some(Err(Error {
             lo: 19,
             hi: 20,
-            message: "no quoted value".into(),
+            message: "no quote value".into(),
+        }))
+    );
+
+
+    let mut parser = Parser::new("`true `() `(1 2 3) `");
+
+    assert_eq!(
+        parser.read(),
+        Some(Ok(Value::List(vec![
+            Value::Symbol("quasiquote".into()),
+            Value::Boolean(true)
+        ])))
+    );
+
+    assert_eq!(
+        parser.read(),
+        Some(Ok(Value::List(vec![
+            Value::Symbol("quasiquote".into()),
+            Value::List(vec![])
+        ])))
+    );
+
+    assert_eq!(
+        parser.read(),
+        Some(Ok(Value::List(vec![
+            Value::Symbol("quasiquote".into()),
+            Value::List(vec![1.into(), 2.into(), 3.into()])
+        ])))
+    );
+
+    assert_eq!(
+        parser.read(),
+        Some(Err(Error {
+            lo: 19,
+            hi: 20,
+            message: "no quasiquote value".into(),
         }))
     );
 }
