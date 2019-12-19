@@ -568,3 +568,52 @@ fn test_quotes() {
         }))
     );
 }
+
+#[test]
+fn test_noarg_addition_regression() {
+    use std::collections::BTreeMap;
+
+    let mut parser = Parser::new("(+) [+] {true +} +() +[] +{}");
+
+    assert_eq!(
+        parser.read(),
+        Some(Ok(Value::List(vec![Value::Symbol("+".into())])))
+    );
+
+    assert_eq!(
+        parser.read(),
+        Some(Ok(Value::Vector(vec![Value::Symbol("+".into())])))
+    );
+
+    assert_eq!(
+        parser.read(),
+        Some(Ok(Value::Map({
+            let mut map = BTreeMap::new();
+            map.insert(Value::Boolean(true), Value::Symbol("+".into()));
+            map
+        })))
+    );
+
+    assert_eq!(parser.read(), Some(Ok(Value::Symbol("+".into()))));
+
+    assert_eq!(
+        parser.read(),
+        Some(Ok(Value::List(vec![])))
+    );
+
+    assert_eq!(parser.read(), Some(Ok(Value::Symbol("+".into()))));
+
+    assert_eq!(
+        parser.read(),
+        Some(Ok(Value::Vector(vec![])))
+    );
+
+
+    assert_eq!(parser.read(), Some(Ok(Value::Symbol("+".into()))));
+
+    assert_eq!(
+        parser.read(),
+        Some(Ok(Value::Map(BTreeMap::new())))
+    );
+
+}

@@ -43,7 +43,8 @@ impl<'a> Parser<'a> {
             }
             (start, ch @ '+') | (start, ch @ '-') => {
                 self.chars.next();
-                match self.peek() {
+                let c = self.peek();
+                match c {
                     Some('0'...'9') => {
                         let start = if ch == '+' { start + 1 } else { start };
                         let end = self.advance_while(|ch| ch.is_digit(10));
@@ -61,8 +62,11 @@ impl<'a> Parser<'a> {
                         let end = self.advance_while(is_symbol_tail);
                         Ok(Value::Symbol(self.str[start..end].into()))
                     }
-                    None | Some(' ') | Some('\t') | Some('\n') => Ok(Value::Symbol(ch.to_string())),
-                    _ => unimplemented!(),
+                    None | Some(' ') | Some('\t') | Some('\n') | Some(')') |
+                    Some(']') | Some('}') | Some('(') | Some('[') | Some('{') => {
+                        Ok(Value::Symbol(ch.to_string()))
+                    },
+                    _ => panic!(format!("Not implemented for {:?}", c)),
                 }
             }
             (start, '.') => {
